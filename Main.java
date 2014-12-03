@@ -46,24 +46,31 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
         {
             case WAITING_FOR_ACTIVATION:
                 // Do nothing?
+                System.out.println("Waiting for activation");
                 break;
             case IN_COMBAT:
                 handleCombat();
+                System.out.println("In COmbat");
                 break;
             case SETUP_CANNON:
                 setupCannon();
+                System.out.println("Setup Cannon");
                 break;
             case LOAD_CANNON:
                 loadCannon();
+                System.out.println("Load Cannon");
                 break;
             case NO_MORE_BALLS:
                 pickupCannon();
+                System.out.println("No More Balls");
                 break;
             case ATTACK:
                 attack();
+                System.out.println("Attack");
                 break;
             case LOOT:
                 loot();
+                System.out.println("Loot");
                 break;
             default:
                 // Do nothing...
@@ -207,7 +214,7 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
 
     private void loot()
     {
-        while(!lootAvailable()) // Remove ! when done
+        while(lootAvailable()) // Remove ! when done
         {
             // Pick stuff up..
             final GroundItem lootItem = ctx.groundItems.select(lootFilter).nearest().poll();
