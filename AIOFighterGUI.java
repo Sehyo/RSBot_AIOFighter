@@ -131,12 +131,6 @@ public class AIOFighterGUI extends JFrame
         return IDs;
     }
 
-    private int getID()
-    {
-
-        return 0;
-    }
-
     private short translateFood()
     {
         short foodID;
