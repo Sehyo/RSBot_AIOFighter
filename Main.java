@@ -8,6 +8,7 @@ import org.powerbot.script.rt6.ClientContext;
 import org.powerbot.script.PaintListener;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 @Script.Manifest(name = "AIO Fighter", description= "Fights anything, anywhere", properties = "client=6; topic=0;")
 public class Main extends PollingScript<ClientContext>  implements PaintListener
@@ -146,7 +147,9 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
     {
         // Simple paint method
         int startY = 100;
-        long timeRan = ((((System.currentTimeMillis() - startTimeMillis) / 1000) / 60) / 60);
+        long timeRan = System.currentTimeMillis() - startTimeMillis;
+        timeRan = TimeUnit.MILLISECONDS.toHours(timeRan);
+        if(timeRan == 0) timeRan = 1;
         if(attackXPGained() > 0)
         {
             g.drawString("Attack XP Gained: " + attackXPGained() + " xp/hour: " + attackXPGained() / timeRan, 0, startY);
