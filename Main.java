@@ -46,31 +46,24 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
         {
             case WAITING_FOR_ACTIVATION:
                 // Do nothing?
-                System.out.println("Waiting for activation");
                 break;
             case IN_COMBAT:
                 handleCombat();
-                System.out.println("In COmbat");
                 break;
             case SETUP_CANNON:
                 setupCannon();
-                System.out.println("Setup Cannon");
                 break;
             case LOAD_CANNON:
                 loadCannon();
-                System.out.println("Load Cannon");
                 break;
             case NO_MORE_BALLS:
                 pickupCannon();
-                System.out.println("No More Balls");
                 break;
             case ATTACK:
                 attack();
-                System.out.println("Attack");
                 break;
             case LOOT:
                 loot();
-                System.out.println("Loot");
                 break;
             default:
                 // Do nothing...
@@ -334,6 +327,12 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
                 // Low health, but we got food :D EAT
                 Item food = ctx.backpack.select(foodFilter).poll();
                 food.interact("Eat");
+            }
+            // Make sure we are still attacking the target.
+            if(!currentTarget.inCombat() || ctx.players.local().interacting() == null)
+            {
+                currentTarget.interact("Attack");
+                sleep(300);
             }
         }
     }
