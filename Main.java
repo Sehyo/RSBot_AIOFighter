@@ -7,8 +7,10 @@ import org.powerbot.script.rt6.*; // Fix later so don't import everything
 import org.powerbot.script.rt6.ClientContext;
 import org.powerbot.script.PaintListener;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
+import java.text.DecimalFormat;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.Random;
 
 @Script.Manifest(name = "AIO Fighter", description= "Fights anything, anywhere", properties = "client=6; topic=0;")
 public class Main extends PollingScript<ClientContext>  implements PaintListener
@@ -37,7 +39,8 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
     final int cannonIsFiringValue = 1050624;
     // Paint Variables
     int startAttackXP = 1, startDefenseXP = 1, startStrengthXP = 1, startConstitutionXP = 1, startRangeXP = 1, startMagicXP = 1;
-    long startTimeMillis;
+    // Loot Item variable made global due to not sure if you can send params to a Callable<T>
+    GroundItem lootItem = null;
     // Ends here
 
     public void poll()
@@ -46,6 +49,9 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
         {
             case WAITING_FOR_ACTIVATION:
                 // Do nothing?
+                break;
+            case WAIT_FOR_NPC_SPAWN:
+                // Add some antiban shit later.
                 break;
             case IN_COMBAT:
                 handleCombat();
@@ -90,35 +96,23 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
         startRangeXP = ctx.skills.experience(Constants.SKILLS_RANGE);
         startMagicXP = ctx.skills.experience(Constants.SKILLS_MAGIC);
         startConstitutionXP = ctx.skills.experience(Constants.SKILLS_CONSTITUTION);
-        startTimeMillis = System.currentTimeMillis();
     }
 
     private State state()
     {
-        if(!activated) return State.WAITING_FOR_ACTIVATION;
-        if(ctx.players.local().interacting().valid())
-        {
-            return State.IN_COMBAT;
-        }
-        if(isUsingCannon && !cannonSetup)
-        {
-            return State.SETUP_CANNON;
-        }
-        if(isUsingCannon && isOutOfAmmo())
-        {
-            return State.LOAD_CANNON;
-        }
-        if(isUsingCannon && cannonSetup && !ballsAvailable())
-        {
-            return State.NO_MORE_BALLS;
-        }
-        if(lootAvailable()) return State.LOOT; // Change false to check if there is loot
+        if(!activated)                                  return State.WAITING_FOR_ACTIVATION;
+        if(ctx.players.local().interacting().valid())   return State.IN_COMBAT;
+        if(isUsingCannon && !cannonSetup)               return State.SETUP_CANNON;
+        if(isUsingCannon && isOutOfAmmo())              return State.LOAD_CANNON;
+        if(isUsingCannon && cannonSetup && !ballsAvailable())  return State.NO_MORE_BALLS;
+        if(lootAvailable()) return State.LOOT;
+        ctx.npcs.select();
+        if(ctx.npcs.select(monsterFilter).isEmpty()) return State.WAIT_FOR_NPC_SPAWN;
         return State.ATTACK; // No loot, no cannon to load, no npc attacking us.. ATTACK :D
     }
 
     private enum State
     {
-        INITIALIZE,
         WAITING_FOR_ACTIVATION,
         SETUP_CANNON,
         LOAD_CANNON,
@@ -126,6 +120,7 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
         IN_COMBAT,
         ATTACK,
         LOOT,
+        WAIT_FOR_NPC_SPAWN,
         SHIT
     }
 
@@ -147,49 +142,38 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
     {
         // Simple paint method
         int startY = 100;
-        long timeRan = System.currentTimeMillis() - startTimeMillis;
-        timeRan = TimeUnit.MILLISECONDS.toHours(timeRan);
+        long timeRan = ctx.controller.script().getRuntime() / 3600000;
         if(timeRan == 0) timeRan = 1;
         if(attackXPGained() > 0)
         {
-            g.drawString("Attack XP Gained: " + attackXPGained() + " xp/hour: " + attackXPGained() / timeRan, 0, startY);
+            g.drawString("Attack XP Gained: " + attackXPGained() + " xp/hour: " + xpHour(attackXPGained()), 0, startY);
             startY += 20;
         }
         if(defenseXPGained() > 0)
         {
-            g.drawString("Defense XP Gained: " + defenseXPGained() + " xp/hour: " + defenseXPGained() / timeRan, 0, startY);
+            g.drawString("Defense XP Gained: " + defenseXPGained() + " xp/hour: " + xpHour(defenseXPGained()), 0, startY);
             startY += 20;
         }
         if(strengthXPGained() > 0)
         {
-            g.drawString("Strength XP Gained: " + strengthXPGained() + " xp/hour: " + strengthXPGained() / timeRan, 0, startY);
+            g.drawString("Strength XP Gained: " + strengthXPGained() + " xp/hour: " + xpHour(strengthXPGained()), 0, startY);
             startY += 20;
         }
         if(rangeXPGained() > 0) {
-            g.drawString("Range XP Gained: " + rangeXPGained() + " xp/hour: " + rangeXPGained() / timeRan, 0, startY);
+            g.drawString("Range XP Gained: " + rangeXPGained() + " xp/hour: " + xpHour(rangeXPGained()), 0, startY);
             startY += 20;
         }
         if(magicXPGained() > 0)
         {
-            g.drawString("Magic XP Gained: " + magicXPGained() + " xp/hour: " + magicXPGained() / timeRan, 0, startY);
+            g.drawString("Magic XP Gained: " + magicXPGained() + " xp/hour: " + xpHour(magicXPGained()), 0, startY);
             startY += 20;
         }
         if(constitutionXPGained() > 0)
         {
-            g.drawString("Constitution XP Gained: " + constitutionXPGained() + " xp/hour: " + constitutionXPGained() / timeRan, 0, startY);
+            g.drawString("Constitution XP Gained: " + constitutionXPGained() + " xp/hour: " + xpHour(constitutionXPGained()), 0, startY);
             startY += 20;
         }
-        g.drawString("Time Ran: " + timeRan,0, startY);
-    }
-
-    /**
-     * Method that sleeps. Not efficient though since it doesn't actually suspend the thread >.>
-     * @param time Specifies for how long to sleep in milliseconds.
-     */
-    private void sleep(int time)
-    {
-        long endTime = System.currentTimeMillis() + time;
-        while(System.currentTimeMillis() <= endTime) {} // Do nothing..
+        g.drawString("Time Ran: " + formatTime(ctx.controller.script().getRuntime()),0, startY);
     }
 
     private boolean lootAvailable()
@@ -210,11 +194,12 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
         while(lootAvailable()) // Remove ! when done
         {
             // Pick stuff up..
-            final GroundItem lootItem = ctx.groundItems.select(lootFilter).nearest().poll();
+            ctx.groundItems.select();
+            lootItem = ctx.groundItems.select(lootFilter).nearest().poll();
             getTileInViewport(lootItem.tile());
-            lootItem.interact("Take");
-            while(lootItem.valid())
-                ctx.groundItems.select(); // Not sure if needed to detect if its not valid any longer
+            lootItem.interact("Take", lootItem.name());
+            Random random = new Random();
+            Condition.wait(itemLooted, 400 - random.nextInt(200), 10 - random.nextInt(4)); // Sleep for maximum of 400, minimum of 200. 6 to 10 times.
         }
     }
 
@@ -232,13 +217,9 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
                     if(cannonBase != null) cannonBase.interact("Set-up");
                     cannonSetup = true;
                     ctx.backpack.select();
-                    while(ctx.backpack.id(normalCannonPartIDs[3]).count() > 0 || ctx.backpack.id(goldCannonPartIDs[3]).count() > 0 || ctx.backpack.id(royaleCannonPartIDs[3]).count() > 0)
-                    {
-                        // Do nothing..Wait until the cannon is fully setup
-                        // Except refreshing backpack.
-                        ctx.backpack.select(); // Not sure if needed to detect if its not valid any longer
-                    }
-                    sleep(1000);
+                    Random random = new Random();
+                    Condition.wait(cannonPlaced, 400 - random.nextInt(200), 30 - random.nextInt(4)); // Sleep for maximum of 400, minimum of 200. 30 to 26 times.
+                    Condition.sleep(1200 - random.nextInt(600));
                     loadCannon();
                 }
         }
@@ -263,7 +244,8 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
         final GameObject cannon = ctx.objects.select(cannonFilter).poll();
         cannon.interact("Fire");
         // Wait till cannon is loaded
-        while(ctx.varpbits.varpbit(cannonVarpbit) != cannonIsFiringValue) {} // Replace by condition wait later.
+        Random random = new Random();
+        Condition.wait(cannonLoaded, 400 - random.nextInt(200), 30 - random.nextInt(4)); // Sleep for maximum of 400, minimum of 200. 30 to 26 times.
     }
 
     private void pickupCannon()
@@ -271,7 +253,8 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
         ctx.objects.select();
         final GameObject cannon = ctx.objects.select(cannonFilter).poll();
         getTileInViewport(cannon.tile());
-        while(ctx.varpbits.varpbit(cannonVarpbit) != 0) {} // Wait till cannon is picked up. // Replace by condition wait later.
+        Random random = new Random();
+        Condition.wait(cannonPickedUp, 400 - random.nextInt(200), 30 - random.nextInt(4)); // Sleep for maximum of 400, minimum of 200. 30 to 26 times.
     }
 
     private void getTileInViewport(Tile tile)
@@ -303,6 +286,7 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
     private void attack()
     {
         ctx.npcs.select();
+        if(ctx.npcs.select(monsterFilter).isEmpty()) return; // No monsters :(
         currentTarget = ctx.npcs.select(monsterFilter).nearest().limit(3).shuffle().poll(); // Anti pattern
         while(!currentTarget.tile().matrix(ctx).inViewport() && currentTarget.valid())
         {
@@ -314,29 +298,62 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
                 ctx.camera.turnTo(currentTarget.tile());
             }
         }
-        currentTarget.interact("Attack");
+        if(!ctx.players.local().interacting().valid() && !ctx.players.local().inMotion() && ctx.players.local().animation() == -1)
+            currentTarget.interact("Attack");
+        Random random = new Random();
+        Condition.sleep(250 - random.nextInt(100));
     }
 
     private void handleCombat() // Add ability AI / functionality in future. Beta afterall :)
     {
+        Random random = new Random();
         while(currentTarget.valid())
         {
             if(ctx.players.local().healthPercent() < whenToHeal && !ctx.backpack.id(foodID).isEmpty())
             {
                 ctx.backpack.select();
                 // Low health, but we got food :D EAT
-                Item food = ctx.backpack.select(foodFilter).poll();
+                Item food = ctx.backpack.id(foodID).select().poll();
                 food.interact("Eat");
             }
             // Make sure we are still attacking the target.
-            if(!currentTarget.inCombat() || ctx.players.local().interacting() == null)
+            if(!ctx.players.local().interacting().valid() && !ctx.players.local().inMotion() && ctx.players.local().animation() == -1 && !currentTarget.inCombat())
             {
                 currentTarget.interact("Attack");
-                sleep(300);
+                Condition.sleep(250 - random.nextInt(100));
             }
         }
     }
 
+    /**
+     * Formats milliseconds to hours : minutes : seconds
+     * @param runTime the run time in milliseconds.
+     * @return the run time formatted to decimal format.
+     */
+    private String formatTime(long runTime)
+    {
+        DecimalFormat decFormat = new DecimalFormat("00");
+        long millis = runTime;
+        long hours = runTime / 3600000;
+        millis -= hours * 3600000;
+        long minutes = millis / 60000;
+        millis -= minutes * 60000;
+        long seconds = millis / 1000;
+        return decFormat.format(hours) + ":" + decFormat.format(minutes) + ":" + decFormat.format(seconds);
+    }
+
+    public String xpHour(int xp)
+    {
+        return formatXP((int)(xp * 3600000D / ctx.controller.script().getRuntime()));
+    }
+
+    public String formatXP(int i)
+    {
+        DecimalFormat decFormat = new DecimalFormat("0.0");
+        if(i >= 1000000) return decFormat.format((i / 1000000)) + "m";
+        if(i >= 1000) return decFormat.format((i / 1000)) + "k";
+        return ""+i;
+    }
     // Various helper methods for the paint
     private int attackXPGained()
     {
@@ -395,20 +412,51 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
         }
     };
 
-    private final Filter<Item> foodFilter = new Filter<Item>()
+    private final Filter<GameObject> cannonFilter = new Filter<GameObject>()
     {
-        public boolean accept(Item item)
+        public boolean accept(GameObject gObject)
         {
-            if(item.id() == foodID) return true;
+            return (gObject.id() == normalCannonPartIDs[0] || gObject.id() == goldCannonPartIDs[0] || gObject.id() == royaleCannonPartIDs[0]) && gObject.tile().equals(cannonTile);
+        }
+    };
+
+    Callable<Boolean> itemLooted = new Callable<Boolean>()
+    {
+        public Boolean call() throws Exception
+        {
+            if(lootItem == null) return true; // null.. end wait.
+            if(lootItem.valid()) return false;
+            return true; // Item has been looted or disappeared or something >.>
+        }
+    };
+
+    Callable<Boolean> cannonPickedUp = new Callable<Boolean>()
+    {
+        public Boolean call() throws Exception
+        {
+            if(ctx.varpbits.varpbit(cannonVarpbit) == 0) return true;
             return false;
         }
     };
 
-    private final Filter<GameObject> cannonFilter = new Filter<GameObject>()
+    Callable<Boolean> cannonLoaded = new Callable<Boolean>()
     {
-        public boolean accept(GameObject gObject)
-        { // for some reason gObject.tile() == cannonTile would always return false even if the tiles seem identical. So I just match x and y.
-            return (gObject.id() == normalCannonPartIDs[0] || gObject.id() == goldCannonPartIDs[0] || gObject.id() == royaleCannonPartIDs[0]) && (gObject.tile().x() == cannonTile.x() && gObject.tile().y() == cannonTile.y());
+        public Boolean call() throws Exception
+        {
+            if(ctx.varpbits.varpbit(cannonVarpbit) == cannonIsFiringValue) return true;
+            return false;
+        }
+    };
+
+    Callable<Boolean> cannonPlaced = new Callable<Boolean>()
+    {
+        public Boolean call() throws Exception
+        {
+            ctx.backpack.select();
+            if(ctx.backpack.id(normalCannonPartIDs[3]).count() > 0 ||
+               ctx.backpack.id(goldCannonPartIDs[3]).count() > 0   ||
+               ctx.backpack.id(royaleCannonPartIDs[3]).count() > 0)      return false;
+            else return true;
         }
     };
 }
