@@ -101,15 +101,15 @@ public class AIOFighterGUI extends JFrame
 
     private void applySettingsActionPerformed(ActionEvent e)
     {
-        main.foodAmount = (Integer)foodCount.getValue();
+        main.foodAmount = ((Integer)foodCount.getValue()).shortValue();
         main.foodID = translateFood();
-        main.radius = (Integer)fightDistance.getValue();
-        main.whenToHeal = whenToHeal.getValue();
+        main.radius = ((Integer)fightDistance.getValue()).shortValue();
+        main.whenToHeal = ((Integer)whenToHeal.getValue()).shortValue();
         if(usingCannon.isSelected()) main.isUsingCannon = true;
         // Get and Add IDs of all monsters we wanna smash
         main.monsterIDs = getIDsInJListModel(selectedMonstersModel);
         main.lootIDs = getIDsInJListModel(selectedLootItemsModel);
-        main.activated = true;
+        main.populateList();
     }
 
     private ArrayList<Integer> getIDsInJListModel(ListModel model)
