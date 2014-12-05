@@ -255,6 +255,7 @@ public class AIOFighterGUI extends JFrame
             String currentTagData = "";
             for(int startIndex = openTagPositions.get(i) + openTag.length(); startIndex < closingTagPositions.get(i); startIndex++)
                 currentTagData += html.charAt(startIndex);
+            System.out.println(currentTagData);
             tagData.add(currentTagData);
         }
         return tagData;
@@ -280,7 +281,7 @@ public class AIOFighterGUI extends JFrame
             {
                 isID = !isID;
                 // We have a name entry! Get rid of the annoying <a> part
-                int startIndex = tagData.get(i).charAt(tagData.get(i).indexOf(">")) + 1;
+                int startIndex = tagData.get(i).charAt(tagData.get(i).indexOf(">"));
                 String name = "";
                 while(tagData.get(i).charAt(startIndex) != '<')
                 {
