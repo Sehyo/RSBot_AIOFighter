@@ -125,7 +125,6 @@ public class AIOFighterGUI extends JFrame
                 if (commaCount >= 2 && Character.isDigit(element.charAt(y))) ID += element.charAt(y);
                 else if(element.charAt(y) == ',') ++commaCount;
             }
-            System.out.println("ID: " + ID);
             IDs.add(Integer.parseInt(ID));
         }
         return IDs;
@@ -255,7 +254,6 @@ public class AIOFighterGUI extends JFrame
             String currentTagData = "";
             for(int startIndex = openTagPositions.get(i) + openTag.length(); startIndex < closingTagPositions.get(i); startIndex++)
                 currentTagData += html.charAt(startIndex);
-            System.out.println(currentTagData);
             tagData.add(currentTagData);
         }
         return tagData;
