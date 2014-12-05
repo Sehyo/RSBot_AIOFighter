@@ -23,18 +23,17 @@ public class TaskHandleCombat extends Task<ClientContext>
 
     public boolean activate()
     {
-        if(ctx.players.local().interacting().valid() || ctx.npcs.select(aggressiveMonsterFilter).nearest().poll().valid()) return true; // We seem to be interacting with an NPC or an NPC seems to be attackign us.
-        System.out.println("Returning false.");
+        if(ctx.players.local().interacting().valid() || ctx.npcs.select(aggressiveMonsterFilter).nearest().poll().valid())
+            return true; // We seem to be interacting with an NPC or an NPC seems to be attackign us.
         return false;
     }
 
     public void execute()
     {
-        System.out.println("Handling Combat executed");
         Random random = new Random(); // Prepare random variable for our sleep.
         Npc currentTarget = ctx.npcs.select(currentTargetFilter).nearest().poll();
         if(!currentTarget.valid()) currentTarget = ctx.npcs.select(aggressiveMonsterFilter).nearest().poll();
-        if(whenToHeal < ctx.players.local().healthPercent() && !ctx.backpack.id(foodID).isEmpty())
+        if(getHealth() < whenToHeal && ctx.backpack.id(foodID).count() != 0)
         {
             ctx.backpack.select();
             // Low health, but we got food :D EAT
@@ -47,6 +46,11 @@ public class TaskHandleCombat extends Task<ClientContext>
             currentTarget.interact("Attack");
             Condition.sleep(250 - random.nextInt(100));
         }
+    }
+
+    public double getHealth()
+    {
+        return (ctx.combatBar.health() / (double)ctx.combatBar.maximumHealth()) * 100;
     }
 
     private final Filter<Npc> aggressiveMonsterFilter = new Filter<Npc>()
