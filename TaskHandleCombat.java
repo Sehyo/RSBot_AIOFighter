@@ -3,13 +3,13 @@ import org.powerbot.script.Filter;
 import org.powerbot.script.rt6.ClientContext;
 import org.powerbot.script.rt6.Item;
 import org.powerbot.script.rt6.Npc;
-import org.powerbot.script.rt6.Player;
 
 import java.util.Random;
 
 /**
  * Created by Alex Noble on 04/12/2014.
  */
+
 public class TaskHandleCombat extends Task<ClientContext>
 {
     short whenToHeal;
@@ -24,16 +24,17 @@ public class TaskHandleCombat extends Task<ClientContext>
     public boolean activate()
     {
         if(ctx.players.local().interacting().valid() || ctx.npcs.select(aggressiveMonsterFilter).nearest().poll().valid()) return true; // We seem to be interacting with an NPC or an NPC seems to be attackign us.
+        System.out.println("Returning false.");
         return false;
     }
 
     public void execute()
     {
+        System.out.println("Handling Combat executed");
         Random random = new Random(); // Prepare random variable for our sleep.
         Npc currentTarget = ctx.npcs.select(currentTargetFilter).nearest().poll();
         if(!currentTarget.valid()) currentTarget = ctx.npcs.select(aggressiveMonsterFilter).nearest().poll();
-        if(!currentTarget.valid()) return; // We have no target and no one is attacking us.
-        if(ctx.players.local().healthPercent() < whenToHeal && !ctx.backpack.id(foodID).isEmpty())
+        if(whenToHeal < ctx.players.local().healthPercent() && !ctx.backpack.id(foodID).isEmpty())
         {
             ctx.backpack.select();
             // Low health, but we got food :D EAT
