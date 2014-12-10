@@ -28,7 +28,7 @@ public class TaskLoot extends Task<ClientContext>
 
     public boolean activate()
     {
-        return lootAvailable();
+        return lootAvailable() && !ctx.players.local().inMotion() && !ctx.players.local().interacting().valid();
     }
 
     public void execute()
@@ -74,7 +74,7 @@ public class TaskLoot extends Task<ClientContext>
         }
     };
 
-    Callable<Boolean> itemLooted = new Callable<Boolean>()
+    private final Callable<Boolean> itemLooted = new Callable<Boolean>()
     {
         public Boolean call() throws Exception
         {

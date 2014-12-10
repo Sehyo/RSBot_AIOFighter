@@ -25,15 +25,18 @@ public class TaskHandleCannon extends Task<ClientContext>
     private Tile cannonTile;
     private Boolean cannonSetup = false;
     private Boolean stopUsingCannon = false;
+    // Activate?
+    private boolean isUsingCannon;
 
-    public TaskHandleCannon(ClientContext ctx)
+    public TaskHandleCannon(ClientContext ctx, boolean isUsingCannon)
     {
         super(ctx);
+        this.isUsingCannon = isUsingCannon;
     }
 
     public boolean activate()
     {
-        if(stopUsingCannon) return false;
+        if(stopUsingCannon || !isUsingCannon) return false;
         return true;
     }
 
@@ -137,7 +140,7 @@ public class TaskHandleCannon extends Task<ClientContext>
         }
     };
 
-    Callable<Boolean> cannonPickedUp = new Callable<Boolean>()
+    private final Callable<Boolean> cannonPickedUp = new Callable<Boolean>()
     {
         public Boolean call() throws Exception
         {
@@ -146,7 +149,7 @@ public class TaskHandleCannon extends Task<ClientContext>
         }
     };
 
-    Callable<Boolean> cannonLoaded = new Callable<Boolean>()
+    private final Callable<Boolean> cannonLoaded = new Callable<Boolean>()
     {
         public Boolean call() throws Exception
         {
@@ -155,7 +158,7 @@ public class TaskHandleCannon extends Task<ClientContext>
         }
     };
 
-    Callable<Boolean> cannonPlaced = new Callable<Boolean>()
+    private final Callable<Boolean> cannonPlaced = new Callable<Boolean>()
     {
         public Boolean call() throws Exception
         {

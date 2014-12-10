@@ -28,7 +28,7 @@ public class TaskAttack extends Task<ClientContext>
 
     public boolean activate()
     {
-        if(hasTarget()) return false; // We already have a target. No need to acquire a new one.
+        if(hasTarget() || ctx.players.local().inMotion()) return false; // We already have a target. No need to acquire a new one.
         return true;
     }
 

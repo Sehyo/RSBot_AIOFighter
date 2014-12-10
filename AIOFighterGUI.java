@@ -101,6 +101,7 @@ public class AIOFighterGUI extends JFrame
 
     private void applySettingsActionPerformed(ActionEvent e)
     {
+        if(buryBones.isSelected()) main.buryBones = true;
         main.foodAmount = ((Integer)foodCount.getValue()).shortValue();
         main.foodID = translateFood();
         main.radius = ((Integer)fightDistance.getValue()).shortValue();
@@ -313,6 +314,7 @@ public class AIOFighterGUI extends JFrame
         label10 = new JLabel();
         currentTile = new JLabel();
         setCurrentTile = new JButton();
+        buryBones = new JCheckBox();
         panel2 = new JPanel();
         label11 = new JLabel();
         refreshMonsters = new JButton();
@@ -377,6 +379,9 @@ public class AIOFighterGUI extends JFrame
                     }
                 });
 
+                //---- buryBones ----
+                buryBones.setText("Bury Bones?");
+
                 GroupLayout panel1Layout = new GroupLayout(panel1);
                 panel1.setLayout(panel1Layout);
                 panel1Layout.setHorizontalGroup(
@@ -401,9 +406,12 @@ public class AIOFighterGUI extends JFrame
                                                                 .addComponent(label6, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE)
                                                                 .addComponent(whenToHeal, GroupLayout.PREFERRED_SIZE, 304, GroupLayout.PREFERRED_SIZE)))
                                                 .addGroup(panel1Layout.createSequentialGroup()
-                                                        .addComponent(label9)
-                                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                                        .addComponent(fightDistance, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE)
+                                                        .addGroup(panel1Layout.createParallelGroup()
+                                                                .addGroup(panel1Layout.createSequentialGroup()
+                                                                        .addComponent(label9)
+                                                                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                                                        .addComponent(fightDistance, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE))
+                                                                .addComponent(buryBones))
                                                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                                         .addGroup(panel1Layout.createParallelGroup()
                                                                 .addComponent(setCurrentTile)
@@ -439,7 +447,9 @@ public class AIOFighterGUI extends JFrame
                                                         .addComponent(label10)
                                                         .addComponent(currentTile)))
                                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 7, Short.MAX_VALUE)
-                                        .addComponent(setCurrentTile)
+                                        .addGroup(panel1Layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                                .addComponent(setCurrentTile)
+                                                .addComponent(buryBones))
                                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(textField1, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE)
                                         .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -640,6 +650,7 @@ public class AIOFighterGUI extends JFrame
     private JLabel label10;
     private JLabel currentTile;
     private JButton setCurrentTile;
+    private JCheckBox buryBones;
     private JPanel panel2;
     private JLabel label11;
     private JButton refreshMonsters;

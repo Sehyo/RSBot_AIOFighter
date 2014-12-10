@@ -22,6 +22,7 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
     short foodAmount, whenToHeal;
     short foodID;
     boolean isUsingCannon;
+    boolean buryBones;
     Tile originTile;
     ArrayList<Integer> monsterIDs;
     ArrayList<Integer> lootIDs;
@@ -58,8 +59,7 @@ public class Main extends PollingScript<ClientContext>  implements PaintListener
     public void populateList()
     {
         tasks.clear();
-        if(isUsingCannon) tasks.addAll(Arrays.asList(new TaskHandleCombat(ctx, whenToHeal, foodID), new TaskHandleCannon(ctx), new TaskLoot(ctx, lootIDs, originTile, radius), new TaskAttack(ctx, monsterIDs, originTile, radius)));
-        else tasks.addAll(Arrays.asList(new TaskHandleCombat(ctx, whenToHeal, foodID), new TaskLoot(ctx, lootIDs, originTile, radius), new TaskAttack(ctx, monsterIDs, originTile, radius)));
+        tasks.addAll(Arrays.asList(new TaskHandleCombat(ctx, whenToHeal, foodID), new TaskHandleCannon(ctx, isUsingCannon), new TaskBuryBones(ctx, buryBones),new TaskLoot(ctx, lootIDs, originTile, radius), new TaskAttack(ctx, monsterIDs, originTile, radius)));
     }
 
     public MobileIdNameQuery<Npc> getNearbyNpcs()

@@ -80,7 +80,7 @@ public class TaskHandleCombat extends Task<ClientContext>
         }
     };
 
-    Callable<Boolean> foodEaten = new Callable<Boolean>()
+    private final Callable<Boolean> foodEaten = new Callable<Boolean>()
     {
         public Boolean call() throws Exception
         {
