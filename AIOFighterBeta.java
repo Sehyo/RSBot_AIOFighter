@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Script.Manifest(name = "AIO Fighter", description= "Fights anything, anywhere", properties = "client=6; topic=0;")
-public class Main extends PollingScript<ClientContext>  implements PaintListener
+public class AIOFighterBeta extends PollingScript<ClientContext>  implements PaintListener
 {
     // GUI Stuff
     AIOFighterGUI gui;

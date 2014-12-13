@@ -13,11 +13,11 @@ import org.powerbot.script.rt6.Npc;
  */
 public class AIOFighterGUI extends JFrame
 {
-    Main main;
+    AIOFighterBeta main;
     String[] foodTypes = {"Shrimp","Trout", "Pike", "Salmon", "Tuna", "Lobster", "Swordfish", "Bass", "Monkfish", "Shark"};
     // Container for items for the loot part of GUI.
     ArrayList<LootGUIItem> retrievedLootItems = new ArrayList<LootGUIItem>();
-    public AIOFighterGUI(Main main)
+    public AIOFighterGUI(AIOFighterBeta main)
     {
         initComponents();
         this.main = main;
@@ -111,6 +111,7 @@ public class AIOFighterGUI extends JFrame
         main.monsterIDs = getIDsInJListModel(selectedMonstersModel);
         main.lootIDs = getIDsInJListModel(selectedLootItemsModel);
         main.populateList();
+        currentTile.setText("(" + main.originTile.x() + "," + main.originTile.y() + ")");
     }
 
     private ArrayList<Integer> getIDsInJListModel(ListModel model)
